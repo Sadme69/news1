@@ -6,8 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 import uvicorn
 
-# Add 'news stream' to path so we can import the scraper
-sys.path.append(os.path.join(os.path.dirname(__file__), "news stream"))
 from scraper import get_somoy_news_stream
 
 app = FastAPI(title="Stream UI Portal Engine")
