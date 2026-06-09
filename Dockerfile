@@ -1,5 +1,5 @@
 # Use the official Playwright Python image which has all dependencies pre-installed
-FROM mcr.microsoft.com/playwright/python:v1.49.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.60.0-noble
 
 # Set the working directory
 WORKDIR /app
