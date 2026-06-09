@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Sports F1 - True Fullscreen Monitor</title>
+    <style>
+        /* Strip out all window spaces, margins, and scrollbars */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        /* Stretch the stream container to handle maximum view matrix bounds */
+        .viewport-layer {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="viewport-layer" id="stream-box">
+        <iframe 
+            src="https://streamfree.app/embed/racing/skyf1?quality=1080p&category=racing" 
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <script>
+        const streamContainer = document.getElementById('stream-box');
+
+        // Automatically trigger true browser fullscreen on your very first click
+        window.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                streamContainer.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen engine initialization paused: ${err.message}`);
+                });
+            }
+        }, { once: true }); // This ensures the fullscreen command only runs on the first click
+    </script>
+
+</body>
+</html>
