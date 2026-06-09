@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: stream-proxy-api
+    name: news1-scraper
     runtime: python
     buildCommand: |
       pip install -r requirements.txt
