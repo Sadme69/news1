@@ -97,43 +97,45 @@ async def somoy_url():
 @app.get("/somoy", response_class=HTMLResponse)
 async def watch_somoy(request: Request):
     """Serves a player for Somoy News using a local proxy to bypass CORS."""
-    url = await get_somoy_news_stream()
-    if not url:
-        raise HTTPException(status_code=500, detail="Failed to extract Somoy News stream.")
-    
-    # We point the player to our proxy endpoint
-    proxy_url = f"{request.base_url}proxy?url={url}"
-    
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Somoy News Live</title>
-        <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-        <style>
-            html, body {{ margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }}
-            video {{ width: 100%; height: 100%; object-fit: contain; }}
-        </style>
-    </head>
-    <body>
-        <video id="video" controls autoplay></video>
-        <script>
-            const video = document.getElementById('video');
-            const streamUrl = "{proxy_url}";
-            if (Hls.isSupported()) {{
-                const hls = new Hls();
-                // Hls.js needs extra config to handle relative paths in the m3u8 through our proxy
-                // but for simple single-level playlists this might just work.
-                hls.loadSource(streamUrl);
-                hls.attachMedia(video);
-            }} else if (video.canPlayType('application/vnd.apple.mpegurl')) {{
-                video.src = streamUrl;
-            }}
-        </script>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+    try:
+        url = await get_somoy_news_stream()
+        if not url:
+            # Return a detailed error page instead of just 500
+            return HTMLResponse(content=f"<h1>Scraper Error</h1><p>Failed to extract stream URL. The site might be blocking the server or the player didn't load.</p>", status_code=500)
+        
+        # We point the player to our proxy endpoint
+        proxy_url = f"{request.base_url}proxy?url={url}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Somoy News Live</title>
+            <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+            <style>
+                html, body {{ margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }}
+                video {{ width: 100%; height: 100%; object-fit: contain; }}
+            </style>
+        </head>
+        <body>
+            <video id="video" controls autoplay></video>
+            <script>
+                const video = document.getElementById('video');
+                const streamUrl = "{proxy_url}";
+                if (Hls.isSupported()) {{
+                    const hls = new Hls();
+                    hls.loadSource(streamUrl);
+                    hls.attachMedia(video);
+                }} else if (video.canPlayType('application/vnd.apple.mpegurl')) {{
+                    video.src = streamUrl;
+                }}
+            </script>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        return HTMLResponse(content=f"<h1>Server Error</h1><pre>{str(e)}</pre>", status_code=500)
 
 @app.get("/watch", response_class=HTMLResponse)
 async def watch_stream():
