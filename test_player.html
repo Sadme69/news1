@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Private Stream Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; text-align: center; }
+        video { width: 80%; max-width: 800px; margin-top: 50px; border: 2px solid #444; }
+        .info { margin: 20px; color: #aaa; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <h1>Private Stream Player</h1>
+    <div class="info" id="url-display">Loading stream...</div>
+    <video id="video" controls autoplay></video>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const streamUrl = urlParams.get('url');
+        
+        if (streamUrl) {
+            document.getElementById('url-display').textContent = "Playing: " + streamUrl;
+            const video = document.getElementById('video');
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = streamUrl;
+            }
+        } else {
+            document.getElementById('url-display').textContent = "No URL provided. Use ?url=YOUR_M3U8_URL";
+        }
+    </script>
+</body>
+</html>
