@@ -4,8 +4,11 @@ import re
 
 async def get_somoy_news_stream():
     async with async_playwright() as p:
-        # Launching headless browser
-        browser = await p.chromium.launch(headless=True)
+        # Launching headless browser with Docker-optimized flags
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+        )
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
         )

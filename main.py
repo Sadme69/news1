@@ -75,16 +75,24 @@ async def home():
     return {
         "status": "online", 
         "message": "Stream View Portal Operational.",
-        "watch_url": "/watch"
+        "endpoints": {
+            "Somoy News Live": "/somoy",
+            "Somoy News M3U8 URL": "/somoy-url",
+            "Sky Sports F1 (Legacy)": "/watch"
+        }
     }
 
 @app.get("/somoy-url")
 async def somoy_url():
     """Returns the raw .m3u8 URL for Somoy News."""
-    url = await get_somoy_news_stream()
-    if not url:
-        raise HTTPException(status_code=500, detail="Failed to extract Somoy News stream.")
-    return {"url": url}
+    try:
+        url = await get_somoy_news_stream()
+        if not url:
+            raise HTTPException(status_code=500, detail="Failed to extract Somoy News stream.")
+        return {"url": url}
+    except Exception as e:
+        print(f"Scraper Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/somoy", response_class=HTMLResponse)
 async def watch_somoy(request: Request):
