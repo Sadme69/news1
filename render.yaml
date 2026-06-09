@@ -1,8 +1,5 @@
 services:
   - type: web
     name: news1-scraper
-    runtime: docker # Changed from python to docker
+    runtime: docker
     plan: free
-    envVars:
-      - key: PORT
-        value: 8000

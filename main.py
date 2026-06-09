@@ -10,6 +10,7 @@ from urllib.parse import urljoin, quote
 
 from scraper import get_somoy_news_stream
 
+# Deployment Trigger: Manual Refresh
 app = FastAPI(title="Stream UI Portal Engine")
 
 # Use a global client for efficiency
