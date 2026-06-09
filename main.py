@@ -79,32 +79,54 @@ async def home():
             "Somoy News Live": "/somoy",
             "Somoy News M3U8 URL": "/somoy-url",
             "Sky Sports F1 (Legacy)": "/watch"
+        import time
+
+        # Use a global client for efficiency
+        client = httpx.AsyncClient()
+
+        # Simple In-Memory Cache
+        cache = {
+            "url": None,
+            "expiry": 0
         }
-    }
 
-@app.get("/somoy-url")
-async def somoy_url():
-    """Returns the raw .m3u8 URL for Somoy News."""
-    try:
-        url = await get_somoy_news_stream()
-        if not url:
-            raise HTTPException(status_code=500, detail="Failed to extract Somoy News stream.")
-        return {"url": url}
-    except Exception as e:
-        print(f"Scraper Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        async def get_cached_somoy_url():
+            """Returns the cached URL if valid, otherwise scrapes a new one."""
+            current_time = time.time()
+            if cache["url"] and current_time < cache["expiry"]:
+                print("Using cached Somoy URL")
+                return cache["url"]
 
-@app.get("/somoy", response_class=HTMLResponse)
-async def watch_somoy(request: Request):
-    """Serves a player for Somoy News using a local proxy to bypass CORS."""
-    try:
-        url = await get_somoy_news_stream()
-        if not url:
-            # Return a detailed error page instead of just 500
-            return HTMLResponse(content=f"<h1>Scraper Error</h1><p>Failed to extract stream URL. The site might be blocking the server or the player didn't load.</p>", status_code=500)
-        
-        # We point the player to our proxy endpoint
-        proxy_url = f"{request.base_url}proxy?url={url}"
+            print("Cache expired or empty. Scraping new Somoy URL...")
+            url = await get_somoy_news_stream()
+            if url:
+                cache["url"] = url
+                cache["expiry"] = current_time + (15 * 60)  # Cache for 15 minutes
+            return url
+
+        @app.get("/somoy-url")
+        async def somoy_url():
+            """Returns the raw .m3u8 URL for Somoy News."""
+            try:
+                url = await get_cached_somoy_url()
+                if not url:
+                    raise HTTPException(status_code=500, detail="Failed to extract Somoy News stream.")
+                return {"url": url}
+            except Exception as e:
+                print(f"Scraper Error: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @app.get("/somoy", response_class=HTMLResponse)
+        async def watch_somoy(request: Request):
+            """Serves a player for Somoy News using a local proxy to bypass CORS."""
+            try:
+                url = await get_cached_somoy_url()
+                if not url:
+                    return HTMLResponse(content=f"<h1>Scraper Error</h1><p>Failed to extract stream URL.</p>", status_code=500)
+
+                # We point the player to our proxy endpoint
+                proxy_url = f"{request.base_url}proxy?url={url}"
+
         
         html_content = f"""
         <!DOCTYPE html>
